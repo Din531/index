@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General Science Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f8ff; /* Light Alice Blue */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
+        .quiz-button {
+            background-color: #87cefa; /* Light Sky Blue */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .quiz-button:hover {
+            background-color: #6495ed; /* Cornflower Blue */
+            transform: translateY(-2px);
+        }
+        .quiz-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        input[type="text"],
+        input[type="password"] {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #b0e0e6; /* Powder Blue */
+            border-radius: 8px;
+            width: calc(100% - 30px);
+            max-width: 300px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .question-container {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #4682b4; /* Steel Blue */
+            font-weight: bold;
+        }
+        .options-container label {
+            display: block;
+            background-color: #e0f2f7; /* Light Cyan */
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: 1px solid #add8e6; /* Light Blue */
+            text-align: left;
+        }
+        .options-container label:hover {
+            background-color: #d4edfa; /* Lighter Blue */
+        }
+        .options-container input[type="radio"] {
+            margin-right: 10px;
+        }
+        .options-container input[type="radio"]:checked + span {
+            font-weight: bold;
+            color: #007bff; /* A nice blue for selected text */
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 20px;
+            height: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4682b4; /* Steel Blue */
+            border-radius: 5px;
+            transition: width 0.3s ease-in-out;
+        }
+        .result-container {
+            font-size: 1.3rem;
+            color: #28a745; /* Green for success */
+            font-weight: bold;
+        }
+        .error-message {
+            color: #dc3545; /* Red for error */
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .admin-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: left;
+        }
+        .admin-section h3 {
+            color: #4682b4;
+            margin-bottom: 15px;
+        }
+        .admin-results {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #b0e0e6;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .admin-results p {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #e0f2f7;
+        }
+        .admin-results p:last-child {
+            border-bottom: none;
+        }
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .quiz-button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+            .question-text {
+                font-size: 1.1rem;
+            }
+            .options-container label {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="login-screen">
+            <h1 class="text-3xl font-bold text-blue-700 mb-6">Welcome to the General Science Quiz!</h1>
+            <p class="mb-4">Please enter your ID and Password to proceed.</p>
+            <input type="text" id="admin-id" placeholder="Enter ID (Quiz1)" class="block mx-auto mb-4">
+            <input type="password" id="admin-password" placeholder="Enter Password (3June)" class="block mx-auto mb-6">
+            <button id="login-button" class="quiz-button">Login</button>
+            <p id="login-error" class="error-message hidden"></p>
+        </div>
+
+        <!-- Name Entry Screen -->
+        <div id="name-entry-screen" class="hidden">
+            <h1 class="text-3xl font-bold text-blue-700 mb-6">Enter Your Name</h1>
+            <input type="text" id="candidate-name" placeholder="Your Name" class="block mx-auto mb-6">
+            <button id="start-quiz-button" class="quiz-button">Start Quiz</button>
+            <p id="name-error" class="error-message hidden"></p>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">General Science Quiz</h2>
+            <p class="text-lg text-gray-700 mb-4" id="candidate-display-name"></p>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p class="text-right text-sm text-gray-500 mt-2">Question <span id="current-question-number">1</span> of <span id="total-questions"></span></p>
+
+            <div class="question-container mt-6">
+                <p class="question-text" id="question-text"></p>
+                <div class="options-container" id="options-container">
+                    <!-- Options will be dynamically loaded here -->
+                </div>
+            </div>
+            <button id="next-button" class="quiz-button mt-6">Next Question</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden">
+            <h2 class="text-3xl font-bold text-blue-700 mb-6">Quiz Complete!</h2>
+            <p class="text-xl text-gray-800 mb-4">Candidate: <span id="final-candidate-name"></span></p>
+            <p class="result-container">Your Score: <span id="score-display"></span> / <span id="total-questions-result"></span></p>
+            <p class="text-gray-600 mt-4">Thank you for attempting the quiz!</p>
+
+            <!-- Admin Section for Results -->
+            <div id="admin-results-section" class="admin-section hidden">
+                <h3 class="text-2xl font-bold">Admin Panel: All Quiz Results</h3>
+                <div id="all-results-display" class="admin-results mt-4">
+                    <!-- Results will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz data (30 MCQs)
+        const quizQuestions = [
+            {
+                question: "Who discovered the Solar System?",
+                options: ["Galileo Galilei", "Nicolaus Copernicus", "Johannes Kepler", "Isaac Newton"],
+                answer: "Nicolaus Copernicus"
+            },
+            {
+                question: "What is the mass of the Sun according to NASA?",
+                options: ["1.989 x 10^20 kg", "1.989 x 10^30 kg", "1.989 x 10^40 kg", "1.989 x 10^50 kg"],
+                answer: "1.989 x 10^30 kg"
+            },
+            {
+                question: "Approximately how old is the solar system?",
+                options: ["1 billion years", "2.5 billion years", "4.5 billion years", "10 billion years"],
+                answer: "4.5 billion years"
+            },
+            {
+                question: "What percentage of the total solar system mass does the Sun make up?",
+                options: ["50%", "75%", "90%", "99.8%"],
+                answer: "99.8%"
+            },
+            {
+                question: "What is the Sun's outer visible layer called?",
+                options: ["Chromosphere", "Corona", "Photosphere", "Convection Zone"],
+                answer: "Photosphere"
+            },
+            {
+                question: "What is the approximate temperature of the Sun's photosphere in Celsius?",
+                options: ["1,000°C", "3,000°C", "6,000°C", "10,000°C"],
+                answer: "6,000°C"
+            },
+            {
+                question: "The Sun is primarily composed of which two gases?",
+                options: ["Oxygen and Nitrogen", "Hydrogen and Oxygen", "Hydrogen and Helium", "Helium and Nitrogen"],
+                answer: "Hydrogen and Helium"
+            },
+            {
+                question: "What is the approximate diameter of the Sun in miles?",
+                options: ["86,493 miles", "864,938 miles", "8,649,380 miles", "86,493,800 miles"],
+                answer: "864,938 miles"
+            },
+            {
+                question: "What is the mean radius of the Sun according to NASA?",
+                options: ["43,216.86 miles", "432,168.6 miles", "4,321,686 miles", "43,216,860 miles"],
+                answer: "432,168.6 miles"
+            },
+            {
+                question: "What is the approximate temperature at the core of the Sun?",
+                options: ["1 million degrees Celsius", "5 million degrees Celsius", "15 million degrees Celsius", "25 million degrees Celsius"],
+                answer: "15 million degrees Celsius"
+            },
+            {
+                question: "The Sun is classified as which type of star?",
+                options: ["Red Giant", "White Dwarf", "Main-sequence G2V star", "Neutron Star"],
+                answer: "Main-sequence G2V star"
+            },
+            {
+                question: "How many Earths would be needed to fill the Sun's volume?",
+                options: ["13,000", "130,000", "1.3 million", "13 million"],
+                answer: "1.3 million"
+            },
+            {
+                question: "What is the distance of the Sun from Earth in Astronomical Units (AU)?",
+                options: ["0.5 AU", "1 AU", "1.5 AU", "2 AU"],
+                answer: "1 AU"
+            },
+            {
+                question: "How long does it take for light to travel from the Sun to the Earth?",
+                options: ["8 minutes 20 seconds", "8 minutes", "5 minutes", "10 minutes"],
+                answer: "499.0 seconds" // The document states 499.0 seconds, which is approx 8 min 19 sec
+            },
+            {
+                question: "Which type of fusion occurs inside the Sun?",
+                options: ["Deuterium-Tritium fusion", "Carbon-Nitrogen fusion", "Proton-proton fusion", "Helium fusion"],
+                answer: "proton-proton fusion"
+            },
+            {
+                question: "What are cosmic snowballs of frozen gases, rock, and dust that orbit the Sun?",
+                options: ["Asteroids", "Meteors", "Comets", "Planets"],
+                answer: "Comets"
+            },
+            {
+                question: "When does equinox occur?",
+                options: ["Once a year", "Three times a year", "Twice a year", "Four times a year"],
+                answer: "Twice a year"
+            },
+            {
+                question: "Which country is called 'the land of rising sun'?",
+                options: ["China", "Korea", "Japan", "India"],
+                answer: "Japan"
+            },
+            {
+                question: "What is the duration of time required for the Sun to orbit once around the centre of the Milky Way Galaxy called?",
+                options: ["Solar year", "Cosmic year", "Galactic month", "Milky Way year"],
+                answer: "cosmic year"
+            },
+            {
+                question: "In 2006, which celestial body was downgraded to 'dwarf planet' by the IAU?",
+                options: ["Mars", "Jupiter", "Pluto", "Neptune"],
+                answer: "Pluto"
+            },
+            {
+                question: "Which forces keep planets in motion in their respective orbits?",
+                options: ["Magnetic and electric force", "Frictional and normal force", "Gravitational and centrifugal force", "Tension and compression force"],
+                answer: "gravitational and centrifugal force"
+            },
+            {
+                question: "Which of the following are inner, rocky planets?",
+                options: ["Jupiter, Saturn, Uranus, Neptune", "Mercury, Venus, Earth, Mars", "Pluto, Eris, Makemake, Haumea", "Ceres, Vesta, Pallas, Hygiea"],
+                answer: "Mercury, Venus, Earth and Mars"
+            },
+            {
+                question: "What is the smallest planet in our solar system?",
+                options: ["Earth", "Mars", "Mercury", "Venus"],
+                answer: "Mercury"
+            },
+            {
+                question: "How many Earth days does one day on Mercury take?",
+                options: ["24 Earth days", "88 Earth days", "59 Earth days", "176 Earth days"],
+                answer: "59 Earth days"
+            },
+            {
+                question: "Which planet is the hottest in our solar system?",
+                options: ["Mercury", "Earth", "Mars", "Venus"],
+                answer: "Venus"
+            },
+            {
+                question: "How long does one day on Venus last in Earth days?",
+                options: ["24 hours", "88 days", "243 Earth days", "365 days"],
+                answer: "243 Earth days"
+            },
+            {
+                question: "What percentage of Earth's atmosphere consists of nitrogen?",
+                options: ["21 percent", "50 percent", "78 percent", "90 percent"],
+                answer: "78 percent"
+            },
+            {
+                question: "What is the most abundant element in the Earth's crust?",
+                options: ["Silicon", "Aluminum", "Iron", "Oxygen"],
+                answer: "Oxygen"
+            },
+            {
+                question: "What phenomenon gives evidence for the spherical shape of the Earth?",
+                options: ["Solar eclipse", "Lunar eclipse", "Aurora borealis", "Meteor showers"],
+                answer: "Lunar eclipse"
+            },
+            {
+                question: "Which planet is known as the Red Planet?",
+                options: ["Earth", "Mars", "Jupiter", "Saturn"],
+                answer: "Mars"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let candidateName = '';
+        let quizAttempted = false; // Flag to prevent restarting
+        let allQuizResults = []; // To store results for admin view
+
+        // Get DOM elements
+        const loginScreen = document.getElementById('login-screen');
+        const adminIdInput = document.getElementById('admin-id');
+        const adminPasswordInput = document.getElementById('admin-password');
+        const loginButton = document.getElementById('login-button');
+        const loginError = document.getElementById('login-error');
+
+        const nameEntryScreen = document.getElementById('name-entry-screen');
+        const candidateNameInput = document.getElementById('candidate-name');
+        const startQuizButton = document.getElementById('start-quiz-button');
+        const nameError = document.getElementById('name-error');
+
+        const quizScreen = document.getElementById('quiz-screen');
+        const candidateDisplayName = document.getElementById('candidate-display-name');
+        const progressBar = document.getElementById('progress-bar');
+        const currentQuestionNumberSpan = document.getElementById('current-question-number');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextButton = document.getElementById('next-button');
+
+        const resultScreen = document.getElementById('result-screen');
+        const finalCandidateName = document.getElementById('final-candidate-name');
+        const scoreDisplay = document.getElementById('score-display');
+        const totalQuestionsResultSpan = document.getElementById('total-questions-result');
+        const adminResultsSection = document.getElementById('admin-results-section');
+        const allResultsDisplay = document.getElementById('all-results-display');
+
+        // Admin credentials
+        const ADMIN_ID = 'Quiz1';
+        const ADMIN_PASSWORD = '3June';
+
+        // Function to shuffle array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Shuffle questions once at the start
+        shuffleArray(quizQuestions);
+
+        // Display current question
+        function displayQuestion() {
+            if (currentQuestionIndex < quizQuestions.length) {
+                const questionData = quizQuestions[currentQuestionIndex];
+                questionText.textContent = `${currentQuestionIndex + 1}. ${questionData.question}`;
+                optionsContainer.innerHTML = ''; // Clear previous options
+
+                // Shuffle options for each question
+                const shuffledOptions = [...questionData.options];
+                shuffleArray(shuffledOptions);
+
+                shuffledOptions.forEach((option, index) => {
+                    const optionId = `option-${index}`;
+                    const label = document.createElement('label');
+                    label.innerHTML = `
+                        <input type="radio" name="quiz-option" id="${optionId}" value="${option}">
+                        <span>${option}</span>
+                    `;
+                    optionsContainer.appendChild(label);
+                });
+
+                currentQuestionNumberSpan.textContent = currentQuestionIndex + 1;
+                totalQuestionsSpan.textContent = quizQuestions.length;
+                updateProgressBar();
+                nextButton.disabled = true; // Disable next button until an option is selected
+
+                // Enable next button when an option is selected
+                optionsContainer.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        nextButton.disabled = false;
+                    });
+                });
+            } else {
+                showResultScreen();
+            }
+        }
+
+        // Update progress bar
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Handle next question
+        function handleNextQuestion() {
+            const selectedOption = document.querySelector('input[name="quiz-option"]:checked');
+            if (selectedOption) {
+                const userAnswer = selectedOption.value;
+                const correctAnswer = quizQuestions[currentQuestionIndex].answer;
+
+                if (userAnswer === correctAnswer) {
+                    score++;
+                }
+
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizQuestions.length) {
+                    displayQuestion();
+                } else {
+                    showResultScreen();
+                }
+            } else {
+                // This case should not happen if next button is disabled
+                // But as a fallback, could show a message
+                console.log("Please select an option.");
+            }
+        }
+
+        // Show result screen
+        function showResultScreen() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            finalCandidateName.textContent = candidateName;
+            scoreDisplay.textContent = score;
+            totalQuestionsResultSpan.textContent = quizQuestions.length;
+            quizAttempted = true; // Mark quiz as attempted
+
+            // Store result for admin view
+            allQuizResults.push({ name: candidateName, score: score, total: quizQuestions.length });
+            displayAdminResults();
+        }
+
+        // Display admin results
+        function displayAdminResults() {
+            allResultsDisplay.innerHTML = '';
+            if (allQuizResults.length === 0) {
+                allResultsDisplay.innerHTML = '<p>No quiz results yet.</p>';
+            } else {
+                allQuizResults.forEach((result, index) => {
+                    const p = document.createElement('p');
+                    p.textContent = `${index + 1}. ${result.name}: ${result.score}/${result.total}`;
+                    allResultsDisplay.appendChild(p);
+                });
+            }
+        }
+
+        // Event Listeners
+
+        // Login button click
+        loginButton.addEventListener('click', () => {
+            const id = adminIdInput.value.trim();
+            const password = adminPasswordInput.value.trim();
+
+            if (id === ADMIN_ID && password === ADMIN_PASSWORD) {
+                loginScreen.classList.add('hidden');
+                nameEntryScreen.classList.remove('hidden');
+                loginError.classList.add('hidden');
+            } else {
+                loginError.textContent = 'Invalid ID or Password.';
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        // Start Quiz button click
+        startQuizButton.addEventListener('click', () => {
+            if (quizAttempted) {
+                nameError.textContent = "You have already attempted the quiz and cannot restart.";
+                nameError.classList.remove('hidden');
+                return;
+            }
+
+            candidateName = candidateNameInput.value.trim();
+            if (candidateName) {
+                nameEntryScreen.classList.add('hidden');
+                quizScreen.classList.remove('hidden');
+                candidateDisplayName.textContent = `Good Luck, ${candidateName}!`;
+                totalQuestionsSpan.textContent = quizQuestions.length; // Set total questions
+                displayQuestion(); // Start displaying questions
+                nameError.classList.add('hidden');
+            } else {
+                nameError.textContent = 'Please enter your name.';
+                nameError.classList.remove('hidden');
+            }
+        });
+
+        // Next button click
+        nextButton.addEventListener('click', handleNextQuestion);
+
+        // Initial setup for admin results section visibility
+        // Admin section is visible only when the result screen is shown and only for the admin
+        // For this simple HTML, we'll just show it on the result screen.
+        // In a real app, this would be behind a proper admin login.
+        resultScreen.addEventListener('DOMNodeInserted', (event) => {
+            if (event.target.id === 'result-screen' && !resultScreen.classList.contains('hidden')) {
+                // For demonstration, always show admin results on quiz completion
+                // In a real scenario, you'd check if the logged-in user is an admin
+                adminResultsSection.classList.remove('hidden');
+                displayAdminResults();
+            }
+        });
+
+        // Ensure the progress bar is at 0% initially
+        progressBar.style.width = '0%';
+    </script>
+</body>
+</html>
